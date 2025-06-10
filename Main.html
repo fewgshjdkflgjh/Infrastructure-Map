@@ -51,6 +51,7 @@
   <div id="map"></div>
 
   <div class="legend">
+    <div><span class="icon" style="background: green;"></span> Power Station</div>
     <div><span class="icon" style="background: red;"></span> Substation</div>
     <div><span class="icon" style="background: blue;"></span> Cell Tower</div>
   </div>
@@ -68,81 +69,99 @@
       attribution: '&copy; Esri, NASA, NGA, USGS'
     }).addTo(map);
 
-    // Define small icons for markers
-    const redPin = L.icon({
+    // Define icons for each type
+    const powerStationPin = L.icon({
+      iconUrl: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+      iconSize: [20, 20],
+      iconAnchor: [10, 20],
+      popupAnchor: [0, -20]
+    });
+
+    const substationPin = L.icon({
       iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
       iconSize: [20, 20],
       iconAnchor: [10, 20],
       popupAnchor: [0, -20]
     });
 
-    const bluePin = L.icon({
+    const cellTowerPin = L.icon({
       iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
       iconSize: [20, 20],
       iconAnchor: [10, 20],
       popupAnchor: [0, -20]
     });
 
-    // Marker cluster group
+    // One marker cluster group for all
     const markers = L.markerClusterGroup();
 
-    // Load JSON file with fetch (must be hosted or run via local server)
-    fetch('data.json')
-      .then(response => response.json())
-      .then(data => {
-        // Combine substations and cellTowers into one array, add type property for icon choice
-        const locations = [];
+    function loadDataAndUpdate() {
+      fetch('data.json')
+        .then(response => response.json())
+        .then(data => {
+          markers.clearLayers();
 
-        if (Array.isArray(data.substations)) {
-          data.substations.forEach(item => {
-            locations.push({
-              type: 'substation',
-              site: item.SiteNumber,
-              name: item.Name,
-              lat: item.Latitude,
-              lon: item.Longitude,
-              info: item.Info
+          // Power Stations
+          if (Array.isArray(data.powerStations)) {
+            data.powerStations.forEach(item => {
+              const popupContent = `
+                <div class="popup-title">${item.Name}</div>
+                <div class="popup-body">
+                  ${item.Info}<br/>
+                  <strong>Coords:</strong> ${item.Latitude.toFixed(5)}, ${item.Longitude.toFixed(5)}<br/>
+                  <strong>Site #:</strong> ${item.SiteNumber || "N/A"}
+                </div>
+              `;
+              const marker = L.marker([item.Latitude, item.Longitude], { icon: powerStationPin }).bindPopup(popupContent);
+              markers.addLayer(marker);
             });
-          });
-        }
+          }
 
-        if (Array.isArray(data.cellTowers)) {
-          data.cellTowers.forEach(item => {
-            locations.push({
-              type: 'cell',
-              site: item.SiteNumber,
-              name: item.Name,
-              lat: item.Latitude,
-              lon: item.Longitude,
-              info: item.Info
+          // Substations
+          if (Array.isArray(data.substations)) {
+            data.substations.forEach(item => {
+              const popupContent = `
+                <div class="popup-title">${item.Name}</div>
+                <div class="popup-body">
+                  ${item.Info}<br/>
+                  <strong>Coords:</strong> ${item.Latitude.toFixed(5)}, ${item.Longitude.toFixed(5)}<br/>
+                  <strong>Site #:</strong> ${item.SiteNumber || "N/A"}
+                </div>
+              `;
+              const marker = L.marker([item.Latitude, item.Longitude], { icon: substationPin }).bindPopup(popupContent);
+              markers.addLayer(marker);
             });
-          });
-        }
+          }
 
-        // Add markers to cluster group
-        locations.forEach(loc => {
-          const icon = loc.type === 'cell' ? bluePin : redPin;
-
-          const popupContent = `
-            <div class="popup-title">${loc.name}</div>
-            <div class="popup-body">
-              ${loc.info}<br/>
-              <strong>Coords:</strong> ${loc.lat.toFixed(5)}, ${loc.lon.toFixed(5)}<br/>
-              <strong>Site #:</strong> ${loc.site || "N/A"}
-            </div>
-          `;
-
-          const marker = L.marker([loc.lat, loc.lon], { icon }).bindPopup(popupContent);
-          markers.addLayer(marker);
+          // Cell Towers
+          if (Array.isArray(data.cellTowers)) {
+            data.cellTowers.forEach(item => {
+              const popupContent = `
+                <div class="popup-title">${item.Name}</div>
+                <div class="popup-body">
+                  ${item.Info}<br/>
+                  <strong>Coords:</strong> ${item.Latitude.toFixed(5)}, ${item.Longitude.toFixed(5)}<br/>
+                  <strong>Site #:</strong> ${item.SiteNumber || "N/A"}
+                </div>
+              `;
+              const marker = L.marker([item.Latitude, item.Longitude], { icon: cellTowerPin }).bindPopup(popupContent);
+              markers.addLayer(marker);
+            });
+          }
+        })
+        .catch(err => {
+          console.error('Error loading locations data:', err);
+          alert('Failed to load location data.');
         });
+    }
 
-        // Add cluster group to map
-        map.addLayer(markers);
-      })
-      .catch(err => {
-        console.error('Error loading locations data:', err);
-        alert('Failed to load location data.');
-      });
+    // Initial load
+    loadDataAndUpdate();
+
+    // Add cluster group to map
+    map.addLayer(markers);
+
+    // Refresh data every 10 seconds
+    setInterval(loadDataAndUpdate, 10000);
   </script>
 </body>
 </html>
