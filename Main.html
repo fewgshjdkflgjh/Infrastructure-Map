@@ -4,145 +4,125 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>UK Power & Cell Infrastructure Map</title>
-
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet/dist/leaflet.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"
-  />
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
   <style>
-    html,
-    body {
-      margin: 0;
-      height: 100%;
+    html, body {
+      margin: 0; height: 100%;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
     #map {
-      width: 100%;
-      height: 100vh;
+      width: 100%; height: 100vh;
     }
-
     .legend {
       position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: rgba(255, 255, 255, 0.95);
+      bottom: 20px; left: 20px;
+      background: white;
       padding: 12px 16px;
       border-radius: 10px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-      font-size: 15px;
-      line-height: 1.3;
-      user-select: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      font-size: 14px;
       z-index: 1000;
-      width: 180px;
-      font-weight: 600;
-      color: #222;
+      user-select: none;
     }
-
     .legend div {
       margin-bottom: 8px;
-      display: flex;
-      align-items: center;
+      display: flex; align-items: center;
     }
-
     .legend .icon {
-      width: 20px;
-      height: 20px;
+      width: 20px; height: 20px;
       margin-right: 10px;
       border-radius: 50%;
-      flex-shrink: 0;
+      border: 1.5px solid #555;
     }
-
     .popup-title {
-      font-weight: 700;
+      font-weight: bold;
       font-size: 16px;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
-
     .popup-body {
       font-size: 14px;
-      color: #444;
+      color: #333;
+      line-height: 1.3;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <div class="legend" aria-label="Map Legend">
-    <div><span class="icon" style="background: red"></span> Substation</div>
-    <div><span class="icon" style="background: blue"></span> Cell Tower</div>
+  <div class="legend">
+    <div><span class="icon" style="background: red;"></span> Substation</div>
+    <div><span class="icon" style="background: blue;"></span> Cell Tower</div>
   </div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
   <script>
-    // Create the map centered on UK
-    const map = L.map("map").setView([53.0, -1.25], 7);
+    // Initialize map
+    const map = L.map('map').setView([53.0, -1.25], 7);
 
-    // Add Esri World Imagery with Labels (satellite + labels)
-    L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      {
-        maxZoom: 20,
-        attribution: "&copy; Esri, NASA, NGA, USGS",
-      }
-    ).addTo(map);
+    // Add Esri satellite base map
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 20,
+      attribution: '&copy; Esri, NASA, NGA, USGS'
+    }).addTo(map);
 
-    // Add labels overlay on top of imagery
-    L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-      {
-        maxZoom: 20,
-        attribution: "",
-        pane: "overlayPane",
-        opacity: 0.7,
-      }
-    ).addTo(map);
-
-    // Define smaller icons for clustering
+    // Define small icons for markers
     const redPin = L.icon({
-      iconUrl:
-        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-      iconSize: [20, 32],
-      iconAnchor: [10, 32],
-      popupAnchor: [1, -30],
-      shadowUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-      shadowSize: [30, 40],
-      shadowAnchor: [12, 40],
+      iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+      iconSize: [20, 20],
+      iconAnchor: [10, 20],
+      popupAnchor: [0, -20]
     });
 
     const bluePin = L.icon({
-      iconUrl:
-        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
-      iconSize: [20, 32],
-      iconAnchor: [10, 32],
-      popupAnchor: [1, -30],
-      shadowUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-      shadowSize: [30, 40],
-      shadowAnchor: [12, 40],
+      iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+      iconSize: [20, 20],
+      iconAnchor: [10, 20],
+      popupAnchor: [0, -20]
     });
 
-    // Create marker cluster group
+    // Marker cluster group
     const markers = L.markerClusterGroup();
 
-    // Load locations from data.json
-    fetch("data.json")
-      .then((response) => {
-        if (!response.ok) throw new Error("Could not load data.json");
-        return response.json();
-      })
-      .then((locations) => {
-        locations.forEach((loc) => {
-          const icon = loc.type === "cell" ? bluePin : redPin;
+    // Load JSON file with fetch (must be hosted or run via local server)
+    fetch('data.json')
+      .then(response => response.json())
+      .then(data => {
+        // Combine substations and cellTowers into one array, add type property for icon choice
+        const locations = [];
+
+        if (Array.isArray(data.substations)) {
+          data.substations.forEach(item => {
+            locations.push({
+              type: 'substation',
+              site: item.SiteNumber,
+              name: item.Name,
+              lat: item.Latitude,
+              lon: item.Longitude,
+              info: item.Info
+            });
+          });
+        }
+
+        if (Array.isArray(data.cellTowers)) {
+          data.cellTowers.forEach(item => {
+            locations.push({
+              type: 'cell',
+              site: item.SiteNumber,
+              name: item.Name,
+              lat: item.Latitude,
+              lon: item.Longitude,
+              info: item.Info
+            });
+          });
+        }
+
+        // Add markers to cluster group
+        locations.forEach(loc => {
+          const icon = loc.type === 'cell' ? bluePin : redPin;
+
           const popupContent = `
             <div class="popup-title">${loc.name}</div>
             <div class="popup-body">
@@ -151,13 +131,17 @@
               <strong>Site #:</strong> ${loc.site || "N/A"}
             </div>
           `;
+
           const marker = L.marker([loc.lat, loc.lon], { icon }).bindPopup(popupContent);
           markers.addLayer(marker);
         });
+
+        // Add cluster group to map
         map.addLayer(markers);
       })
-      .catch((error) => {
-        alert("Error loading locations data: " + error.message);
+      .catch(err => {
+        console.error('Error loading locations data:', err);
+        alert('Failed to load location data.');
       });
   </script>
 </body>
