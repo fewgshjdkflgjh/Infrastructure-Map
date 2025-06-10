@@ -1,48 +1,44 @@
 {
+  "powerStations": [
+    {
+      "SiteNumber": "P001",
+      "Name": "Power Station Alpha",
+      "Latitude": 52.5000,
+      "Longitude": -1.9000
+    },
+    {
+      "SiteNumber": "P002",
+      "Name": "Power Station Beta",
+      "Latitude": 53.2000,
+      "Longitude": -1.3000
+    }
+  ],
   "substations": [
     {
       "SiteNumber": "S001",
-      "Name": "Ratcliffe Power Station",
-      "Latitude": 53.08757,
-      "Longitude": 1.24424,
-      "Info": "Coal-fired power station."
+      "Name": "Substation Gamma",
+      "Latitude": 52.6000,
+      "Longitude": -1.9500
     },
     {
       "SiteNumber": "S002",
-      "Name": "Drax Power Station",
-      "Latitude": 53.7402,
-      "Longitude": -0.9984,
-      "Info": "One of the largest in Europe."
-    },
-    {
-      "SiteNumber": "S003",
-      "Name": "Didcot Power Station",
-      "Latitude": 51.6205,
-      "Longitude": -1.2396,
-      "Info": "Decommissioned site."
-    },
-    {
-      "SiteNumber": "S004",
-      "Name": "Priory Avenue Substation",
-      "Latitude": 53.1008,
-      "Longitude": -1.249,
-      "Info": "Small local substation."
+      "Name": "Substation Delta",
+      "Latitude": 53.1000,
+      "Longitude": -1.3500
     }
   ],
   "cellTowers": [
     {
       "SiteNumber": "C001",
-      "Name": "Cell Tower - Nottingham",
-      "Latitude": 52.9548,
-      "Longitude": -1.1581,
-      "Info": "5G tower in central Nottingham."
+      "Name": "Cell Tower Epsilon",
+      "Latitude": 52.7000,
+      "Longitude": -1.8000
     },
     {
       "SiteNumber": "C002",
-      "Name": "Cell Tower - Leeds",
-      "Latitude": 53.8008,
-      "Longitude": -1.5491,
-      "Info": "Cell site near Leeds city centre."
+      "Name": "Cell Tower Zeta",
+      "Latitude": 53.0000,
+      "Longitude": -1.4000
     }
   ]
 }
